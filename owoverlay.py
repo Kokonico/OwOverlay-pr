@@ -57,9 +57,9 @@ class Overlay(wx.Frame):
     def update(self, _):
         awin = aw.get_active_window()
         if awin:
-            self.left_bmp.SetPosition((awin.position[0],  (awin.position[1]-self.OverlayHeight)+self.YOverlap))
+            self.left_bmp.SetPosition((awin.position[0],  (awin.position[1]-self.OverlayHeight)+self.YOverlap-60))
             self.middle_bmp.SetPosition((awin.position[0] + (awin.size[0] // 2) - (self.middle_png.GetWidth() // 2), (awin.position[1]-self.OverlayHeight)+self.YOverlap))
-            self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)+self.YOverlap))
+            self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)+self.YOverlap-60))
             self.left_bmp.SetSize(wx.Size(self.left_png.GetWidth(), self.OverlayHeight))
             self.middle_bmp.SetSize(wx.Size(self.middle_png.GetWidth(), self.OverlayHeight))
             self.right_bmp.SetSize(wx.Size(self.right_png.GetWidth(), self.OverlayHeight))
