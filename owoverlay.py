@@ -6,6 +6,9 @@ import json
 import random
 import activewindow as aw
 import subprocess
+import os
+
+# TODO clean up pngs in main directory
 
 config_path = "config.json"
 
@@ -18,26 +21,29 @@ class Overlay(wx.Frame):
         self.SetBackgroundColour(wx.TransparentColour)
         self.Size = wx.DisplaySize()
         if 4 == len(sys.argv):
-            self.PNGFile = sys.argv[1]
+            self.EarPack = sys.argv[1]
             self.OverlayHeight = int(sys.argv[2])
             self.YOverlap = int(sys.argv[3])
         elif pathlib.Path(config_path).exists():
             cfg = json.load(open(config_path, "r"))
-            self.PNGFile = cfg.get("file")
+            self.EarPack = cfg.get("ear_pack")
             self.OverlayHeight = cfg.get("height")
             self.YOverlap = cfg.get("y_overlap")
         else:
-            self.PNGFile = filedialog.askopenfilename(title="Select Overlay PNG")
+            self.EarPack = filedialog.askopenfilename(title="Select Overlay PNG")
             self.OverlayHeight = simpledialog.askinteger("Set Overlay Height", "Set the overlay height in pixels:")
             self.YOverlap = simpledialog.askinteger("Set Overlay Y-Offset", "Set how far below the top of the window should the overlay go:")
-        print(self.PNGFile, self.OverlayHeight, self.YOverlap)
+        print(self.EarPack, self.OverlayHeight, self.YOverlap)
         self.Position = (0, 0)
         self.Show(True)
 
         # Load images
-        self.left_png = wx.Image("earkits/mike/left.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self.middle_png = wx.Image("earkits/mike/middle.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self.right_png = wx.Image("earkits/mike/right.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+
+        pack_directory = os.path.join(os.path.dirname(__file__), "earkits", self.EarPack)
+
+        self.left_png = wx.Image(os.path.join(pack_directory, "left.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        self.middle_png = wx.Image(os.path.join(pack_directory, "middle.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        self.right_png = wx.Image(os.path.join(pack_directory, "right.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
 
         while True:
             awin = aw.get_active_window()
@@ -57,9 +63,11 @@ class Overlay(wx.Frame):
     def update(self, _):
         awin = aw.get_active_window()
         if awin:
-            self.left_bmp.SetPosition((awin.position[0],  (awin.position[1]-self.OverlayHeight)+self.YOverlap-60))
+            # Update position and size of bitmaps
+            # We don't apply y overlap to the left and right bitmaps (they can cover important stuff, experiencing this firsthand in pycharm)
+            self.left_bmp.SetPosition((awin.position[0],  (awin.position[1]-self.OverlayHeight)))
             self.middle_bmp.SetPosition((awin.position[0] + (awin.size[0] // 2) - (self.middle_png.GetWidth() // 2), (awin.position[1]-self.OverlayHeight)+self.YOverlap))
-            self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)+self.YOverlap-60))
+            self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)))
             self.left_bmp.SetSize(wx.Size(self.left_png.GetWidth(), self.OverlayHeight))
             self.middle_bmp.SetSize(wx.Size(self.middle_png.GetWidth(), self.OverlayHeight))
             self.right_bmp.SetSize(wx.Size(self.right_png.GetWidth(), self.OverlayHeight))
