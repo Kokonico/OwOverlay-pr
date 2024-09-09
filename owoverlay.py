@@ -41,9 +41,14 @@ class Overlay(wx.Frame):
 
         pack_directory = os.path.join(os.path.dirname(__file__), "earkits", self.EarPack)
 
-        self.left_png = wx.Image(os.path.join(pack_directory, "left.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        # pack project.json
+        self.pack_config = json.load(open(os.path.join(pack_directory, "project.json"), "r"))
+
         self.middle_png = wx.Image(os.path.join(pack_directory, "middle.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self.right_png = wx.Image(os.path.join(pack_directory, "right.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+
+        if self.pack_config.get("has_ears"):
+            self.left_png = wx.Image(os.path.join(pack_directory, "left.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            self.right_png = wx.Image(os.path.join(pack_directory, "right.png"), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
 
         while True:
             awin = aw.get_active_window()
@@ -51,9 +56,10 @@ class Overlay(wx.Frame):
                 break
 
         # Create StaticBitmap for each image
-        self.left_bmp = wx.StaticBitmap(self, -1, self.left_png, (awin.position[0], (awin.position[1]-self.OverlayHeight)+self.YOverlap), (self.left_png.GetWidth(), self.OverlayHeight))
-        self.middle_bmp = wx.StaticBitmap(self, -1, self.middle_png, (awin.position[0] + (awin.size[0] // 2) - (self.middle_png.GetWidth() // 2), (awin.position[1]-self.OverlayHeight)+self.YOverlap), (self.middle_png.GetWidth(), self.OverlayHeight))
-        self.right_bmp = wx.StaticBitmap(self, -1, self.right_png, (awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)+self.YOverlap), (self.right_png.GetWidth(), self.OverlayHeight))
+        self.middle_bmp = wx.StaticBitmap(self, -1, self.middle_png, (awin.position[0] + (awin.size[0] // 2) - (self.middle_png.GetWidth() // 2), (awin.position[1] - self.OverlayHeight) + self.YOverlap), (self.middle_png.GetWidth(), self.OverlayHeight))
+        if self.pack_config.get("has_ears"):
+            self.left_bmp = wx.StaticBitmap(self, -1, self.left_png, (awin.position[0], (awin.position[1] - self.OverlayHeight) + self.YOverlap), (self.left_png.GetWidth(), self.OverlayHeight))
+            self.right_bmp = wx.StaticBitmap(self, -1, self.right_png, (awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)+self.YOverlap), (self.right_png.GetWidth(), self.OverlayHeight))
 
         self.Show(True)
         self.timer = wx.Timer(self)
@@ -65,12 +71,13 @@ class Overlay(wx.Frame):
         if awin:
             # Update position and size of bitmaps
             # We don't apply y overlap to the left and right bitmaps (they can cover important stuff, experiencing this firsthand in pycharm)
-            self.left_bmp.SetPosition((awin.position[0],  (awin.position[1]-self.OverlayHeight)))
             self.middle_bmp.SetPosition((awin.position[0] + (awin.size[0] // 2) - (self.middle_png.GetWidth() // 2), (awin.position[1]-self.OverlayHeight)+self.YOverlap))
-            self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)))
-            self.left_bmp.SetSize(wx.Size(self.left_png.GetWidth(), self.OverlayHeight))
             self.middle_bmp.SetSize(wx.Size(self.middle_png.GetWidth(), self.OverlayHeight))
-            self.right_bmp.SetSize(wx.Size(self.right_png.GetWidth(), self.OverlayHeight))
+            if self.pack_config.get("has_ears"):
+                self.right_bmp.SetPosition((awin.position[0] + awin.size[0] - self.right_png.GetWidth(), (awin.position[1]-self.OverlayHeight)))
+                self.right_bmp.SetSize(wx.Size(self.right_png.GetWidth(), self.OverlayHeight))
+                self.left_bmp.SetPosition((awin.position[0], (awin.position[1] - self.OverlayHeight)))
+                self.left_bmp.SetSize(wx.Size(self.left_png.GetWidth(), self.OverlayHeight))
 
 strings = [
     "ฅ^•ﻌ•^ฅ OwOverlay is starting up. Count how many times you can say UwU while you wait.",
